@@ -1,0 +1,133 @@
+---
+title: "Exercises for Session 2"
+format: html
+editor: visual
+---
+
+## Projects and Working Directory
+
+Hopefully you are looking at this file from within an RStudio *Project*. This will help you use these training files separately from other R work you might be doing.
+
+We could imagine the directory structure for our Project using a tree like this. You can also visualize the directory structure by clicking around in the Files tab in the lower right.
+
+```         
+r101_exercises
+├── exercises
+│   ├── real_data
+│   │   ├── README.md
+│   │   ├── Thyroid_Diff.csv
+│   │   ├── cirrhosis.csv
+│   │   └── ckd-dataset-v2.csv
+│   └── session_2.qmd
+├── solutions
+│   ├── real_data
+│   │   ├── README.md
+│   │   ├── Thyroid_Diff.csv
+│   │   ├── cirrhosis.csv
+│   │   └── ckd-dataset-v2.csv
+│   └── session_2.qmd
+└── r101_exercises.Rproj
+```
+
+When you are in a Project, the *working directory* (the "home base" for relative file paths) is set to be the top level directory of the project.
+
+The top level directory also gives its name to the .Rproj file. So here, our top level directory for the Project is `r101_exercises`, and this directory holds two subdirectories, exercises and solutions, as well as an .Rproj file, which RStudio uses to hold default settings for how your Project should behave.
+
+Copy the line below, and paste it and run it in the console (lower left pane):
+
+getwd()
+
+What answer did you get?
+
+## Cool RStudio Feature for Working Directory
+
+It can be tricky to remember what your working directory is. Luckily, RStudio does something really cool to help you when you're working inside a file (like this one) and running code chunks there. It assumes that you **probably want to use the location of the file as your working directory**.
+
+This file, `session_2.qmd`, lives inside a directory of the top level directory.
+
+Run the chunk below. It will also execute in the console in the lower left pane.
+
+```{r}
+getwd()
+```
+
+Did you get a different answer? Yes, you did! That's because as a default (you can change this if you want but it's not a great idea in our opinion), RStudio assumes that when you're working from a file, that file's directory is what you want as your working directory. Pretty nifty!
+
+## Ingesting Data
+
+Take a look at the **Files** pane on the bottom right. Make sure you're looking within the "exercises" directory, which you probably are, since you're reading this file!
+
+Note that there is a file named `covid_testing.csv`. The objective of the first exercise is to *import*, or *ingest* that CSV file into R as a *data frame*, and then take a first look at its contents using the *Data Viewer*.
+
+Recall that to import CSV files, we use the `read_csv()` function, which is part of the `tidyverse` package. The `read_csv()` function takes a file as an argument and returns a data frame. To capture the data frame in a named object, we use the *assignment operator* ( \<- ).
+
+In the following code chunk, we first load the `tidyverse` package and then use the `read_csv()` function to load the `covid_testing.csv` file and capture it in an object named `covid_testing`.
+
+You can probably skip the cell just below this paragraph, because we tried to install tidyverse ahead of time. For now, you can skip it... and we've told RStudio to skip it when rendering as well, by using "eval=FALSE".
+
+```{r eval=FALSE}
+install.packages("tidyverse")
+```
+
+In the same directory as this `session_2.qmd` file, there's a file called `covid_testing.csv`. Because it's in the same directory, we can just give the name of the file, and if we run the chunk below, RStudio is smart enough to realize you want to look around in the same directory.
+
+If you get an error that says something like `there is no package called 'tidyverse'`, that means that tidyverse isn't installed. Run the code chunk above to get it installed, then keep going!
+
+```{r, message = FALSE}
+library(tidyverse)
+covid_testing <- read_csv("covid_testing.csv")
+```
+
+Hint: click on the green triangle in the upper right corner of the code chunk!
+
+By the way, you didn't have to call the new object `covid_testing`. You could call it `my_data`, `covid_stuff`, or `bob`. It's a good idea to name things in ways that are very clear, however.
+
+Names (names of columns, names of data frames, etc.) should in general:
+
+-   Not have spaces (use underscores instead!)
+-   Be all lower case (or CamelCase, but be consistent!)
+-   Not have symbols like colons or commas
+-   Explain what they hold
+-   Not start with a number
+-   Be consistent (don't name one column birth_date and the other date_of_death -- choose a single word order and go with that!)
+
+Good names:
+
+-   age_yrs_at_intake
+-   dob
+-   last_name
+
+Bad names:
+
+-   data_1
+-   Last Name
+-   1st_name
+-   age:years
+
+## Inspecting a data frame
+
+One thing that Excel does well is to provide an interactive visual representation of the data. This allows you to inspect it by sorting and filtering. RStudio actually does this well, too, with one difference - it won't let you *change* any of the data while you inspect it.
+
+Look on the right at the *Environment* pane (you might have to click on the "Environment" tab) and find the entry *covid_testing*. This is the data frame you just created inside of R's memory. (If you don't see covid_testing, try running the code chunk above again).
+
+On the far right next to *covid_testing*, you will spot a symbol that looks like a small table. Click on it to make the *Data Viewer* appear.
+
+Without writing any code, just by working with the Data Viewer, try to answer the following questions:
+
+1.  How many rows are in the data frame? How many columns?
+
+There are 15,524 rows and 17 columns. This information can be seen at the bottom of the Data Viewer, and also in the Environment pane. Note that in R parlance, rows == observations, and columns == variables.
+
+2.  Go ahead and try to edit one of the values in this viewer. You will find that you can't. It would have been easy for the RStudio programmers to allow editing of specific values, but they decided not to add that feature. Why do you think this was designed that way?
+
+This would encourage point-and-click workflows that are not reproducible.
+
+3.  Each row in *covid_testing* represents a single COVID19 test. The value in the *pan_day* column indicates the day (after the start of the pandemic) on which the test sample was taken. On which "pandemic day" was the first test sample taken? The last?
+
+If sort the table by `pan_day` and then look at the very top and the very bottom, you will find out the first "pandemic day" was 4, and the last one was 107. You can sort the data in the Data Viewer by clicking on the column header.
+
+Important: this doesn't actually change the data in the `covid_testing` data frame!
+
+4.  How many tests overall were positive? How many positive tests were there in the first 30 days of the pandemic? (Hint: look at the Filter button)
+
+The `result` column holds that information. We can apply a filter to that column to only show us rows where the value in the `result` column is "positive". Click on Filter and enter "positive" in the text field that appears below the `result` header. You will now see that the bottom line of the data viewer reads "Showing 1 to \[some number\] of 865 entries, 17 total columns (filtered from 15,524 total entries)". So there were 865 positive tests, out of 15,524 total. We can apply an additional filter to the `pan_day` column to limit our data to the first 30 days. Applying this filter we see that 137 positive tests in this time window.
