@@ -89,28 +89,28 @@ Names (names of columns, names of data frames, etc.) should in general:
 -   Not have symbols like colons or commas
 -   Explain what they hold
 -   Not start with a number
--   Be consistent (don't name one column birth_date and the other date_of_death -- choose a single word order and go with that!)
+-   Be consistent (don't name one column `birth_date` and the other `date_of_death` -- choose a single word order and go with that!)
 
 Good names:
 
--   age_yrs_at_intake
--   dob
--   last_name
+-   `age_yrs_at_intake`
+-   `dob`
+-   `last_name`
 
 Bad names:
 
--   data_1
--   Last Name
--   1st_name
--   age:years
+-   `data_1`
+-   `Last Name`
+-   `1st_name`
+-   `age:years`
 
 ## Inspecting a data frame
 
 One thing that Excel does well is to provide an interactive visual representation of the data. This allows you to inspect it by sorting and filtering. RStudio actually does this well, too, with one difference - it won't let you *change* any of the data while you inspect it.
 
-Look on the right at the *Environment* pane (you might have to click on the "Environment" tab) and find the entry *covid_testing*. This is the data frame you just created inside of R's memory. (If you don't see covid_testing, try running the code chunk above again).
+Look on the right at the *Environment* pane (you might have to click on the "Environment" tab) and find the entry `covid_testing`. This is the data frame you just created inside of R's memory. (If you don't see covid_testing, try running the code chunk above again).
 
-On the far right next to *covid_testing*, you will spot a symbol that looks like a small table. Click on it to make the *Data Viewer* appear.
+On the far right next to `covid_testing`, you will spot a symbol that looks like a small table. Click on it to make the *Data Viewer* appear.
 
 Without writing any code, just by working with the Data Viewer, try to answer the following questions:
 
@@ -122,7 +122,7 @@ There are 15,524 rows and 17 columns. This information can be seen at the bottom
 
 This would encourage point-and-click workflows that are not reproducible.
 
-3.  Each row in *covid_testing* represents a single COVID19 test. The value in the *pan_day* column indicates the day (after the start of the pandemic) on which the test sample was taken. On which "pandemic day" was the first test sample taken? The last?
+3.  Each row in `covid_testing` represents a single COVID19 test. The value in the *pan_day* column indicates the day (after the start of the pandemic) on which the test sample was taken. On which "pandemic day" was the first test sample taken? The last?
 
 If sort the table by `pan_day` and then look at the very top and the very bottom, you will find out the first "pandemic day" was 4, and the last one was 107. You can sort the data in the Data Viewer by clicking on the column header.
 
@@ -131,3 +131,35 @@ Important: this doesn't actually change the data in the `covid_testing` data fra
 4.  How many tests overall were positive? How many positive tests were there in the first 30 days of the pandemic? (Hint: look at the Filter button)
 
 The `result` column holds that information. We can apply a filter to that column to only show us rows where the value in the `result` column is "positive". Click on Filter and enter "positive" in the text field that appears below the `result` header. You will now see that the bottom line of the data viewer reads "Showing 1 to \[some number\] of 865 entries, 17 total columns (filtered from 15,524 total entries)". So there were 865 positive tests, out of 15,524 total. We can apply an additional filter to the `pan_day` column to limit our data to the first 30 days. Applying this filter we see that 137 positive tests in this time window.
+
+
+## Sneak Preview: Data Viz
+
+The below code chunk does three things:
+
+* Reads in some data (you can do this now!)
+* Improves the data with clearer explanatory labels (we'll do this later)
+* Displays the data in a useful, attractive graph (we'll do this next!)
+
+Run it and see what you get!
+
+```{r}
+cirrhosis <- read_csv("real_data/cirrhosis.csv")
+cirrhosis <- cirrhosis %>%
+  mutate(Status = factor(Status, 
+                         levels = c("C", 
+                                    "CL", 
+                                    "D"), 
+                         labels = c("Censored", 
+                                    "Censored(Transplant)", 
+                                    "Death")),
+         Sex = factor(Sex,
+                      levels = c("M", "F"),
+                      labels = c("Male", "Female")))
+ggplot(cirrhosis) +
+  geom_boxplot(aes(x = Status, y = Bilirubin, fill = Sex)) +
+  labs(title = "Bilirubin by Study Outcome and Sex",
+       x = "",
+       y = "Serum Bilirubin, mg/dl")
+  
+```
