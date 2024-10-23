@@ -48,6 +48,9 @@ ggplot(______) +
 ```
 
 The effect of reducing the bin width (and increasing the number of bins) is that the data is now presented in much greater detail.
+
+### STOP HERE!
+
 Let's next add some color!
 
 Copy and paste the previous code chunk and:
@@ -61,13 +64,9 @@ Copy and paste the previous code chunk and:
 * Makes sure all aesthetics are within the `aes()` function.
 
 ```{r}
-# A second example, with wide bins (just give me 4 bins)
-ggplot(data = cirrhosis) +
-  geom_histogram(mapping = aes(x = Cholesterol,
-                               fill = Sex), bins = 30)
-```
 
-### STOP HERE!
+
+```
 
 ### Your Turn: Geom functions
 
@@ -82,7 +81,8 @@ ggplot(data = cirrhosis) +
 Now try to figure out how you would modify the code above so it draws a frequency polygon instead of histogram.
 
 ```{r}
-ggplot(data = cirrhosis) +
+
+
 ```
 
 Modify the previous code chunk so that the frequency polygon's line color is blue, regardless of the data:

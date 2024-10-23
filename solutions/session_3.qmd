@@ -53,6 +53,7 @@ ggplot(data = cirrhosis) +
 ggplot(data = cirrhosis) +
   geom_histogram(mapping = aes(x = Cholesterol), bins = 4)
 ```
+### STOP HERE!
 
 Let's next add some color!
 
@@ -67,13 +68,10 @@ Copy and paste the previous code chunk and:
 * Makes sure all aesthetics are within the `aes()` function.
 
 ```{r}
-# A second example, with wide bins (just give me 4 bins)
 ggplot(data = cirrhosis) +
   geom_histogram(mapping = aes(x = Cholesterol,
                                fill = Sex), bins = 30)
 ```
-
-### STOP HERE!
 
 ### Your Turn: Geom functions
 
