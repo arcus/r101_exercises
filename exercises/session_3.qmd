@@ -1,0 +1,117 @@
+---
+title: "Visualize Data"
+format: html
+editor: visual
+---
+
+### Your Turn 1: The ggplot template and aesthetics
+
+Run the following code chunk to import cirrhosis data.
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+cirrhosis <- read_csv("real_data/cirrhosis.csv") 
+```
+
+Let's recreate the histogram of `Cholesterol`.
+
+You will need to:
+
+1.  Pick a data set: e.g. *cirrhosis*
+2.  Choose a geom function: e.g. *geom_histogram()*
+3.  Map aesthetic properties of the graph to variables of the data frame (in this case, the *Cholesterol* variable should be on the x axis).
+
+Fill in the blanks and run the code to create the plot.
+
+```{r}
+ggplot(data = ____) +
+  ____(mapping = aes(x = ____))
+```
+
+When you run this code, you will most likely have what looks like an error displayed above the graph:
+
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+This is actually just a message from R, telling you that it's a bad idea to use a default bin width.
+
+The `Cholesterol` variable holds cholesterol values. What would be an appropriate number of bins or bin width?  Try experimenting with various values of either `binwidth` or `bins`.
+
+Fill in the blanks below to recreate the code from the previous chunk, with the *binwidth* argument passed to the *geom_histogram* function.
+
+**Pro Tip**: Often, the most important argument for a function (like the `data` argument for `ggplot` or the `mapping` argument for `geom` functions) is assumed to be first, and you can delete the label.
+
+So, `ggplot(data = cirrhosis)` is the same as `ggplot(cirrhosis)`!
+
+```{r}
+ggplot(______) +
+  ______(mapping = aes(______), binwidth = ______)
+```
+
+The effect of reducing the bin width (and increasing the number of bins) is that the data is now presented in much greater detail.
+Let's next add some color!
+
+Copy and paste the previous code chunk and:
+
+* Set `bins` to 30 (just so we're all on the same page)
+* After your first aesthetic mapping, for `x`, add a comma.
+* Hit enter, to get a new line (it just makes it look nice)
+* Add a second aesthetic mapping after your mapping for `x`: 
+  - It will be a mapping for `fill` 
+  - It will be set to use the `Sex` column. 
+* Makes sure all aesthetics are within the `aes()` function.
+
+```{r}
+# A second example, with wide bins (just give me 4 bins)
+ggplot(data = cirrhosis) +
+  geom_histogram(mapping = aes(x = Cholesterol,
+                               fill = Sex), bins = 30)
+```
+
+### STOP HERE!
+
+### Your Turn: Geom functions
+
+Run the following code chunk, which should look familiar to you in a few ways!
+
+```{r}
+ggplot(data = cirrhosis) +
+  geom_histogram(mapping = aes(x = N_Days),
+                 binwidth = 365)
+```
+
+Now try to figure out how you would modify the code above so it draws a frequency polygon instead of histogram.
+
+```{r}
+ggplot(data = cirrhosis) +
+```
+
+Modify the previous code chunk so that the frequency polygon's line color is blue, regardless of the data:
+
+* Inside the `geom` function (NOT inside the `aes`, find your last argument (probably `binwidth`), and after that argument, put a comma.
+* Put the argument name: `color`
+* Set it equal to the color you want. Color names go in quotes!
+
+```{r}
+
+
+```
+
+Now modify the frequency polygon so that you have two lines: one for men, and one for women.  How would you do this?  Would it go inside or outside the `aes` function?
+
+```{r}
+
+
+```
+
+What do you think the following code will do? Try to predict what you'll see.
+
+Then run it.
+
+```{r}
+ggplot(data = cirrhosis) +
+  geom_histogram(mapping = aes(x = N_Days),
+                 binwidth = 365) +
+  geom_freqpoly(mapping = aes(x = N_Days,
+                              color = Sex),
+                binwidth = 365)
+```
