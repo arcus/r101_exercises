@@ -1,0 +1,148 @@
+---
+title: "Visualize and Transform"
+format: html
+editor: visual
+---
+
+## Visualize
+
+Last time we left off with using `ggplot2`.
+
+Here are some great tips for working with color: <https://r-graph-gallery.com/ggplot2-color.html>
+
+## Load tidyverse
+
+```{r}
+library(tidyverse)
+```
+
+## Bring in the cirrhosis dataset
+
+```{r}
+cirrhosis <- read_csv("real_data/cirrhosis.csv")
+```
+
+
+## A Bonus Example
+
+* `scale_fill_manual` (for filled shapes) and `scale_color_manual` (for lines/points) works for when you have a handful of discrete values you want to hand code.  Just run this so you get an idea!
+
+
+```{r}
+ggplot(data = cirrhosis) +
+  geom_histogram(mapping = aes(x = Cholesterol,
+                               fill = Sex), bins = 30) +
+  scale_fill_manual(values = c("M" = "red",
+                               "F" = "#01aaff"))
+```
+
+* `scale_fill_brewer` and `scale_color_brewer` are good for choosing palettes for discrete variables where you don't want to pick individual colors.  Again, just run this, the code is done for you!
+
+
+```{r}
+ggplot(data = cirrhosis) +
+  geom_histogram(mapping = aes(x = Cholesterol,
+                               fill = Sex), bins = 30) +
+  scale_fill_brewer(palette = "Accent")
+```
+
+
+* `scale_fill_brewer` and `scale_color_brewer` weren't designed for continuous variables.  BUT... the `scale_fill_distiller` and `scale_color_distiller` were designed to extend `brewer` type palettes to continuous variables.  Go ahead and run the next two chunks.
+
+
+```{r}
+# ggplot default -- boring blue
+ggplot(data = cirrhosis) +
+  geom_point(mapping = aes(x = N_Days,
+                           y = Bilirubin,
+                           color = Cholesterol), bins = 30) 
+```
+
+```{r}
+# An example using a color palette (lots to choose from)
+ggplot(data = cirrhosis) +
+  geom_point(mapping = aes(x = N_Days,
+                           y = Bilirubin,
+                           color = Cholesterol), bins = 30) +
+  scale_color_distiller(palette = "Oranges",
+                        na.value = "#AAA")
+```
+
+## Use Filter and Select
+
+Let's say we want to create a new data frame, `high_cholesterol_females`, which contains a very limited set of values (only `ID`, `Status`, `Stage`, `Age`, `Cholesterol`, and `Bilirubin`, in that order).  The participants in this data frame should only be female subjects with cholesterol levels at or above 300.
+
+In this case, it definitely matters the order in which we do our `select` and `filter`.  Can you see why?
+
+We'll start with filter.  You have to put two conditions inside the filter.  You can either use an explicit and with the `&` signal, or you can put a comma between your two conditions, which will act as an "and."
+
+```{r}
+high_cholesterol_females <- cirrhosis %>%
+  filter(                     )
+```
+
+Take a look at `high_cholesterol_females`.  Are you happy with the filtering?  Does it look like you did it correctly (133 rows, 20 columns)?  If so, copy the code above and continue with a `select` in the code chunk below!
+
+Don't forget to add a pipe to take the result of your filter to pass it on to the next step!
+Note that in the solutions file I might use a different pipe than you, or different whitespace than you, or a different "and" than you... lots of things might be different, but if you end up getting 133 rows of 6 columns I bet you did it right.
+
+```{r}
+  
+
+
+```
+
+OK, now your PI is grumpy because age is in days, and who measures age that way?  These are adults, he grumbles, put their ages in years. He wants you to replace the Age column that has days with an Age column that has years.
+
+There are at least two ways to do this.
+
+* Make a data frame that has Age and New_Age columns (or something like that) so you can eyeball the two side by side before you commit, then if you're happy you can go for it
+* Overwrite Age directly and be brave
+
+So, fix "Age" to meet your boss's demands.  Again, my solution might not look like yours!
+
+```{r}
+
+```
+
+## Experiment With Group By And Summarize
+
+Here's an example group by / summarise.
+
+```{r}
+cirrhosis |>
+  group_by(Hepatomegaly) |>
+  summarize(Mean_Cholesterol = mean(Cholesterol, na.rm = TRUE), 
+            Median_Cholesterol = median(Cholesterol, na.rm = TRUE))
+```
+
+But what if you wanted to see these values across the groups divided up by sex and hepatomegaly (so, males with hepatomegaly, males without, females with, females without, etc.)?  Can you guess how to do that?
+
+Do a bit of experimentation!
+
+
+```{r}
+
+
+
+
+```
+
+What if you wanted to add the group size for each group?  You could add the argument `group_size = n()` to your summarize statement.  Give it a shot.
+
+```{r}
+
+
+
+
+```
+
+If you wanted to order the resulting table so that the highest mean cholesterol was at the top, and descended as it went down, you could do that.  There's a `dplyr` function I haven't explained, called `arrange`.  Try using the pipe to send your results so far to `arrange(desc(Mean_Cholesterol))`.
+
+
+```{r}
+
+
+
+
+```
