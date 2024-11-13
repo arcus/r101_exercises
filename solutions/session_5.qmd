@@ -1,0 +1,240 @@
+---
+title: "Tidying Data For Real"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Load Libraries
+
+```{r libraries}
+library(tidyverse)
+```
+
+## Bring in Data
+
+This time, we'll work with chronic kidney disease data from Bangladesh (see https://archive.ics.uci.edu/dataset/857/risk+factor+prediction+of+chronic+kidney+disease).
+
+```{r import-data}
+kidney <- read_csv("real_data/ckd-dataset-v2.csv")
+```
+
+## Ingesting Problematic Data
+
+Sometimes data comes to you with weird artifacts.  Someone used question marks to indicate missing data, instead of leaving blanks, or there's weird encoding, or they used tab-delimited data, not comma-delimited, etc. These are surmountable problems, and you can usually fix them at the moment of data ingestion.
+
+Look at the `kidney` data frame by using the Environment pane or issuing the command `View(kidney)` (or use `head(kidney)` to look at the first few rows).  What do you see?
+
+Yep -- the first two "rows" are actually metadata.  Because R is trying to bring those in as data, two problems emerge:
+
+* Columns that otherwise contain just numbers now have words in them, thanks to those two rows, which means the entire column type has to be "character".  Now you can't do math on that column!
+* There are two rows that don't actually contain research data.  Instead of there being 202 rows, there really should only be 200 rows
+
+If we eliminate the rows, we're still stuck with the wrong column types.  You can learn more about ingesting data by issuing `?read_csv` to look at the help file.  Try that and read about the `skip` argument and try using that below to overwrite `kidney` and re-ingest the data a second time.  
+
+Peek to see if that helped!  
+
+* Are some columns now a numeric data type (like "double")?
+* Do you have 200 rows of data, and no rows of bogus data?
+* Everything else still look good?
+
+```{r ingest-with-skip}
+kidney <- read_csv("real_data/ckd-dataset-v2.csv",
+                   skip = 2 ) 
+
+head(kidney)
+```
+
+Well, we were able to skip rows and fix the issue of data types and bogus data, but unfortunately, that means we missed being able to use the header row!  Now there aren't usable, helpful column names.  Drat!
+
+There's not a single argument to use for a case like this, so I hit my local search engine and looked for "tidyverse read_csv skip rows after header row" and found a similar question and associated answer here: https://github.com/tidyverse/readr/issues/179.  Learning how to search for solutions in R will be a skill you develop over time!
+
+This is how we'll do it.  We'll:
+
+* Bring in just the first row of the kidney csv -- the row with the headers -- and save the column names as a new object, which we'll call `column_names`
+* Then we'll bring in the `kidney` dataframe, and we'll skip three rows:
+  - the header row
+  - the row that says "discrete" over and over
+  - the row that's mostly blank and has a couple of values toward the end
+* When we bring in the `kidney` dataframe, we'll indicate that the column names should come from `column_names`.
+
+For ease, we'll demonstrate exactly how to do this.
+
+```{r ingest-with-skip-plus-names}
+column_names <- names(read_csv("real_data/ckd-dataset-v2.csv", 
+                               n_max = 1))
+
+kidney <- read_csv("real_data/ckd-dataset-v2.csv",
+                   skip = 3,
+                   col_names = column_names)
+```
+
+Now take a peek!  The `kidney` data frame should look much improved.
+
+Note: if you wanted to make your code even shorter, you could combine the two lines of code from the code chunk above, but that might be hard to read.  This is what that would look like:
+
+```{r ingest-combined-code}
+kidney <- read_csv("real_data/ckd-dataset-v2.csv",
+                   skip = 3,
+                   col_names = names(read_csv("real_data/ckd-dataset-v2.csv", 
+                               n_max = 1)))
+```
+Sometimes, short, cool code can make you feel accomplished and brilliant but be really hard to maintain later!  It's up to you to decide what makes the most sense to do.
+
+If you end up using temporary things (like `column_names`) that you want to get rid of to de-clutter your R environment, you can use `rm` followed by a quoted object name.
+
+```{r remove-objects}
+rm("column_names")
+```
+
+## Factors: Unordered
+
+Factors are categorical variables (variables with a handful of predictable values that repeat over and over again) that can have a logical order ("small", "medium", "large"; "Monday", "Tuesday", "Wednesday") or not really have a logical order ("male", "female"; "Pennsylvania", "Maryland", "New Jersey").
+
+Let's set some of the columns in `kidney` to be factors.  We'll start with an "unordered" factor, the column `class`.  First, let's look at the unique values there and make sure we understand what's in there.
+
+To do this, use the pipe.  Start with the data frame, then select the column you want to look at, and then use `unique` to get just the unique values (so, instead of seeing 200 values, you'll just see each value that appears in that column, but only once).
+
+```{r unique-class-values}
+kidney %>% 
+  select(class) %>%
+  unique()
+```
+
+OK, great, there are just 2 values.  This is a perfect use case for a factor variable!
+
+We can use the `mutate` function of `dplyr` to make the `class` column into a factor variable.  Now that we're starting to mess around with `kidney`, let's make a `kidney_cleaned` to work with.  That way, if we mess up, we'll still have our untouched `kidney` we can go back to.  Fill in the blanks below:
+
+```{r mutate-class}
+kidney_cleaned <- kidney %>%
+  mutate(class = factor(class))
+```
+
+Look at the **column type** of the `class` column in `kidney` versus `kidney_cleaned`.  You can do this by looking in the Environment pane or by using `str(data_frame_name)`.  See how `kidney` has a `class` column that is a "character" data type, while `kidney_cleaned` has a factor data type?  Factors can be a more efficient way to store and model data and prevent typos and other mistakes.  Lots more info about factors is available at https://r4ds.hadley.nz/factors.html.
+
+## Factors: What if Numbers are Used As Categories?
+
+Sometimes, things that look like numbers are actually factors.  Some people like to use numbers like 0 and 1 to mean "false" and "true", or things like 0=Male, 1=Female, 99=Unknown.  This can be a useful code, but the problem arises when R thinks "oh, this is a numerical signal, something I can use to help build a model."  Does a subject of unknown sex have 99 times some quality than a female subject?  No!  But R might try to use a formula like that in a linear model.  Using numbers instead of categories can be dangerous. 
+
+So let's also look at one of these examples.
+
+The dataset isn't well annotated (this is another huge problem with data and, as an aside, I plead with you to create good data dictionaries always).  So we kind of have to muddle through here.  But I suspect that a number of the columns with integer values of 0 and 1 are actually categorical columns.  Let's change `ane` (maybe that's "anemia"?) to be categorical.  Let's assert (without evidence) that 0 means "No Anemia" and 1 means "Anemia Present".  
+
+We can use `recode_factor` here, which has a weird thing you have to do.  Since we're recoding numbers to use a value, you have to put those numbers (the `ane` column holds a numerical data type, not a character data type) in back ticks, which are different than single quotes.  It's weird, it's just one of those things you gotta memorize.
+
+Since we're now working with kidney cleaned, we'll keep iteratively working with that.
+
+```{r mutate-recode-ane}
+kidney_cleaned <- kidney_cleaned %>%
+  mutate(ane = recode_factor(ane, 
+                             `0` = "No Anemia", 
+                             `1` = "Anemia Present"))
+  
+```
+
+Now take a look at the data frame using `View` or by clicking on the name of the data frame in the Environment pane.  Isn't it easier to interpret, humanly speaking?
+
+## Your Turn
+
+Do the same thing (recode using `recode_factor`) for `cad`, making the value for 0 be "Absent" and the value for 1 be "Present".
+
+```{r mutate-recode-cad}
+kidney_cleaned <- kidney_cleaned %>%
+  mutate(cad = recode_factor(cad, 
+                             `0` = "Absent", 
+                             `1` = "Present"))
+  
+```
+
+## Factors: Ordered
+
+Sometimes, categories have orders.  If we look at the `bu` column in `kidney_cleaned` (the data frame we're working with to gradually clean a little at a time), we can see an example of categorical data that has an order.  In this case, this is a range.  But R is storing this data not in any kind of numerical order, but in alphabetical order, because the `bu` column is just character data.  To see what we mean by this, look at the unique values that can be found in the `bu` column (similar to what we did with `class` above), but as the last step, add a new pipeline step: `arrange(bu)`.  This will put things "in order" by the specified column -- which depends on the data type.  Numbers will be in numerical order, character data will be in alphabetical order, etc.
+
+```{r bu-orders}
+kidney_cleaned %>% 
+  select(bu) %>%
+  unique() %>%
+  arrange(bu)
+```
+
+Now, we as humans can read that and realize that these aren't just characters to put in order (so, 1s come before 4s which come before symbols), but rather, numeric ranges.  R isn't so smart, though.  Luckily, we can **carefully** copy and paste (being careful not to add or subtract spaces!) and specify the **level order** for a factor that has these categories.
+
+A couple things to note:
+
+* You might notice that there's a missing category!  Just leave it out for now, as it doesn't actually appear in our data.
+* The `c()` function (you may have already used it) is for a "concatenatation", which is a fancy word for a list.
+
+Finish the list I've started below!
+
+```{r bu-levels}
+bu_level_order <- c("< 48.1",
+                    "48.1 - 86.2",
+                    "86.2 - 124.3",
+                    "124.3 - 162.4",
+                    "162.4 - 200.5",
+                    "200.5 - 238.6",
+                    "238.6 - 276.7",
+                    "≥ 352.9")
+```
+
+Now that we've established the correct order, we can again use `mutate` to turn `bu` into a factor.  We're starting now with `kidney_cleaned` (because it's already in progress) and we'll overwrite it with an even cleaner version!
+
+```{r mutate-bu}
+kidney_cleaned <- kidney_cleaned %>%
+  mutate(bu = factor(bu, levels = bu_level_order))
+```
+
+Now if we want to order things in `kidney_cleaned` according to the values in `bu`, we can do so, and R will use the factor order, not alphabetical order, as it did before!
+
+Let's demonstrate that:
+
+```{r bu-orders-2}
+kidney_cleaned %>% 
+  select(bu) %>%
+  unique() %>%
+  arrange(bu)
+```
+
+## Your turn!
+
+Do the same thing (figure out how many values there are, create factor levels, and mutate the column so that it becomes a factor) for `pot`.
+
+```{r pot-values}
+kidney_cleaned %>% 
+  select(pot) %>%
+  unique()
+```
+
+```{r pot-levels-mutate}
+pot_level_order <- c("< 7.31",
+                     "7.31 - 11.72",
+                     "38.18 - 42.59",
+                     "≥ 42.59")
+
+kidney_cleaned <- kidney_cleaned %>%
+  mutate(pot = factor(pot, levels = pot_level_order))
+```
+
+
+## Why Factor Orders Matter
+
+Sometimes you want to visualize something, and you want things to be in order on the graph.  Let's consider two graphs.  Each one gives counts of how many subjects are in each categorical "bin".  One graph makes sense.  The other... does not.
+
+```{r plot-bu}
+ggplot(kidney_cleaned) +
+  geom_histogram(aes(bu), stat = "count")  +
+  scale_x_discrete(guide = guide_axis(angle = 45)) 
+```
+
+See how the bins of `bu` are in order in what we would consider the logical order?
+
+```{r plot-wbcc}
+ggplot(kidney_cleaned) +
+  geom_histogram(aes(wbcc), stat = "count")  +
+  scale_x_discrete(guide = guide_axis(angle = 45)) 
+```
+
+See how the bins of `wbcc` are in **alphabetical** order, which doesn't make sense?  This is an example of a factor hiding in plain sight -- this column needs to be transformed!
